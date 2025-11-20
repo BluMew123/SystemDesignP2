@@ -14,7 +14,8 @@
   "type": "module",
   "dependencies": {
     "@prisma/client": "^6.18.0",
-    "express": "^5.1.0"
+    "express": "^5.1.0",
+    "mongodb": "^7.0.0"
   },
   "devDependencies": {
     "prisma": "^6.18.0"
