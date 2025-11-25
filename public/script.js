@@ -81,201 +81,197 @@ const saveItem = async (data) => {
             return
         }
 
-        const result = await response.json()
-        console.log('Saved:', result)
+        // Tarot Journal client-side logic
 
+        const cardSearch = document.querySelector('#cardSearch')
+        const cardsList = document.querySelector('#cardsList')
+        const positionContainer = document.querySelector('#positionContainer')
+        const cardPosition = document.querySelector('#cardPosition')
+        const selectedTags = document.querySelector('#selectedTags')
+        const spreadSelect = document.querySelector('#spreadSelect')
+        const entryDate = document.querySelector('#entryDate')
+        const notes = document.querySelector('#notes')
+        const saveEntry = document.querySelector('#saveEntry')
+        const clearForm = document.querySelector('#clearForm')
+        const entriesDiv = document.querySelector('#entries')
 
-        // Refresh the data list
-        getData()
-    }
-    catch (err) {
-        console.error('Save error:', err)
-        alert('An error occurred while saving')
-    }
-}
+        // Local storage key
+        const STORAGE_KEY = 'tarot-journal-entries'
 
+        // List of tarot cards (Major Arcana + Pips and Court)
+        const tarotCards = [
+            'Fool','Magician','High Priestess','Empress','Emperor','Hierophant','Lovers','Chariot','Strength','Hermit','Wheel of Fortune','Justice','Hanged Man','Death','Temperance','Devil','Tower','Star','Moon','Sun','Judgement','World',
+            'Ace of Cups','Two of Cups','Three of Cups','Four of Cups','Five of Cups','Six of Cups','Seven of Cups','Eight of Cups','Nine of Cups','Ten of Cups','Page of Cups','Knight of Cups','Queen of Cups','King of Cups',
+            'Ace of Pentacles','Two of Pentacles','Three of Pentacles','Four of Pentacles','Five of Pentacles','Six of Pentacles','Seven of Pentacles','Eight of Pentacles','Nine of Pentacles','Ten of Pentacles','Page of Pentacles','Knight of Pentacles','Queen of Pentacles','King of Pentacles',
+            'Ace of Swords','Two of Swords','Three of Swords','Four of Swords','Five of Swords','Six of Swords','Seven of Swords','Eight of Swords','Nine of Swords','Ten of Swords','Page of Swords','Knight of Swords','Queen of Swords','King of Swords',
+            'Ace of Wands','Two of Wands','Three of Wands','Four of Wands','Five of Wands','Six of Wands','Seven of Wands','Eight of Wands','Nine of Wands','Ten of Wands','Page of Wands','Knight of Wands','Queen of Wands','King of Wands'
+        ]
 
-// Edit item - populate form with existing data
-const editItem = (data) => {
-    console.log('Editing:', data)
+        // Populate datalist
+        tarotCards.forEach(card => {
+            const option = document.createElement('option')
+            option.value = card
+            cardsList.appendChild(option)
+        })
 
-    // Populate the form with data to be edited
-    Object.keys(data).forEach(field => {
-        const element = myForm.elements[field]
-        if (element) {
-            if (element.type === 'checkbox') {
-                element.checked = data[field]
-            } else if (element.type === 'date') {
-                // Extract yyyy-mm-dd from ISO date string (avoids timezone issues)
-                element.value = data[field] ? data[field].substring(0, 10) : ''
+        let selectedCards = [] // { name, position }
+
+        function showPositionSelector() {
+            positionContainer.style.display = 'block'
+        }
+
+        function hidePositionSelector() {
+            positionContainer.style.display = 'none'
+        }
+
+        function renderTags() {
+            selectedTags.innerHTML = ''
+            selectedCards.forEach((c, idx) => {
+                const chip = document.createElement('span')
+                chip.className = 'tag'
+                chip.textContent = `${c.name} (${c.position})`
+                const removeBtn = document.createElement('button')
+                removeBtn.className = 'tag-remove'
+                removeBtn.textContent = '×'
+                removeBtn.addEventListener('click', () => {
+                    selectedCards.splice(idx, 1)
+                    renderTags()
+                })
+                chip.appendChild(removeBtn)
+                selectedTags.appendChild(chip)
+            })
+        }
+
+        // When user selects a card (via datalist or typed and Enter pressed)
+        cardSearch.addEventListener('change', (e) => {
+            const val = e.target.value.trim()
+            if (!val) return
+            // Verify it's in the list
+            const found = tarotCards.find(c => c.toLowerCase() === val.toLowerCase())
+            if (found) {
+                // show position selector
+                showPositionSelector()
+                // focus position
+                cardPosition.focus()
             } else {
-                element.value = data[field]
+                // Not found
+                alert('Card not found. Try selecting from the list.')
+            }
+        })
+
+        // When position selected, add tag and clear search
+        cardPosition.addEventListener('change', () => {
+            const name = cardSearch.value.trim()
+            const pos = cardPosition.value
+            if (!name) return
+            selectedCards.push({ name, position: pos })
+            renderTags()
+            // reset
+            cardSearch.value = ''
+            cardPosition.value = 'upright'
+            hidePositionSelector()
+        })
+
+        // Allow Enter on search to act like selecting
+        cardSearch.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault()
+                const val = cardSearch.value.trim()
+                const found = tarotCards.find(c => c.toLowerCase() === val.toLowerCase())
+                if (found) {
+                    showPositionSelector()
+                    cardPosition.focus()
+                } else {
+                    alert('Card not found. Please choose a card from the suggestions.')
+                }
+            }
+        })
+
+        // Save reading to localStorage
+        function loadEntries() {
+            try {
+                const raw = localStorage.getItem(STORAGE_KEY)
+                return raw ? JSON.parse(raw) : []
+            } catch (err) {
+                console.error('Failed to load entries', err)
+                return []
             }
         }
-    })
 
-    // Update the heading to indicate edit mode
-    formHeading.textContent = '🐈 Edit Cat'
-
-    // Show the popover
-    formPopover.showPopover()
-}
-
-// Delete item
-const deleteItem = async (id) => {
-    if (!confirm('Are you sure you want to delete this cat?')) {
-        return
-    }
-
-    const endpoint = `/data/${id}`
-    const options = { method: "DELETE" }
-
-    try {
-        const response = await fetch(endpoint, options)
-
-        if (response.ok) {
-            const result = await response.json()
-            console.log('Deleted:', result)
-            // Refresh the data list
-            getData()
+        function saveEntries(arr) {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(arr))
         }
-        else {
-            const errorData = await response.json()
-            alert(errorData.error || 'Failed to delete item')
-        }
-    } catch (error) {
-        console.error('Delete error:', error)
-        alert('An error occurred while deleting')
-    }
-}
 
-
-const calendarWidget = (date) => {
-    if (!date) return ''
-    const month = new Date(date).toLocaleString("en-CA", { month: 'short', timeZone: "UTC" })
-    const day = new Date(date).toLocaleString("en-CA", { day: '2-digit', timeZone: "UTC" })
-    const year = new Date(date).toLocaleString("en-CA", { year: 'numeric', timeZone: "UTC" })
-    return ` <div class="calendar">
-                <div class="born"><img src="./assets/birthday.svg" /></div>
-                <div class="month">${month}</div>
-                <div class="day">${day}</div> 
-                <div class="year">${year}</div>
-            </div>`
-
-}
-
-// Render a single item
-const renderItem = (item) => {
-    const div = document.createElement('div')
-    div.classList.add('item-card')
-    div.setAttribute('data-id', item.id)
-
-    const template = /*html*/`  
-    <div class="item-heading">
-        <h3> ${item.name} </h3>
-        <div class="microchip-info">
-            <img src="./assets/chip.svg" /> ${item.microchip || '<i>???</i>'} 
-        </div>  
-    </div>
-    <div class="item-info"> 
-        <div class="item-icon" style="
-            background: linear-gradient(135deg, 
-            ${item.primaryColor} 0%, 
-            ${item.primaryColor} 40%, 
-            ${item.secondaryColor} 60%, 
-            ${item.secondaryColor} 100%); 
-        ">
-        </div> 
-        <div class="stats">
-            <div class="stat">
-                <span>Playfulness</span>
-                <meter max="10" min="0" value="${item.playfulness || 0}"></meter> 
-            </div>
-            <div class="stat">
-                <span>Appetite</span>
-                <meter max="10" min="0" value="${item.appetite || 0}"></meter> 
-            </div>
-        </div> 
-            
-         ${calendarWidget(item.birthDate)}
-    </div>
-        
-    <div class="item-info">  
-        <section class="breed" style="${item.breed ? '' : 'display:none;'}">  
-            <img src="./assets/ribbon.svg" />  ${item.breed}
-        </section>
-        <section class="food" style="${item.food ? '' : 'display:none;'}">
-             <img src="./assets/${item.food}.svg" /> <span>${item.food} food</span>
-        </section> 
-        <section class="adoption">
-            <img src="./assets/${item.isAdopted ? 'adopted' : 'paw'}.svg" />
-            ${item.isAdopted ? 'Adopted' : 'Available'}
-        </section> 
-    </div>
-
-    <section class="description" style="${item.description ? '' : 'display:none;'}">  
-        <p>${item.description}</p>
-    </section>
-
-        
-           
-        <div class="item-actions">
-            <button class="edit-btn">Edit</button>
-            <button class="delete-btn">Delete</button>
-        </div>
-    `
-    div.innerHTML = DOMPurify.sanitize(template);
-
-    // Add event listeners to buttons
-    div.querySelector('.edit-btn').addEventListener('click', () => editItem(item))
-    div.querySelector('.delete-btn').addEventListener('click', () => deleteItem(item.id))
-
-    return div
-}
-
-// fetch items from API endpoint and populate the content div
-const getData = async () => {
-    try {
-        const response = await fetch('/data')
-
-        if (response.ok) {
-            readyStatus.style.display = 'block'
-            notReadyStatus.style.display = 'none'
-
-            const data = await response.json()
-            console.log('Fetched data:', data)
-
-            if (data.length == 0) {
-                contentArea.innerHTML = '<p><i>No data found in the database.</i></p>'
+        function renderEntries() {
+            const entries = loadEntries()
+            entriesDiv.innerHTML = ''
+            if (entries.length === 0) {
+                entriesDiv.innerHTML = '<p><i>No saved readings yet.</i></p>'
                 return
             }
-            else {
-                contentArea.innerHTML = ''
-                data.forEach(item => {
-                    const itemDiv = renderItem(item)
-                    contentArea.appendChild(itemDiv)
+
+            entries.slice().reverse().forEach((entry, idx) => {
+                const card = document.createElement('div')
+                card.className = 'entry-card'
+                const dateText = entry.date ? new Date(entry.date).toLocaleDateString() : '—'
+                const tagsHtml = entry.cards.map(c => `<span class="tag static">${c.name} (${c.position})</span>`).join(' ')
+                card.innerHTML = DOMPurify.sanitize(`
+                    <div class="entry-head">
+                        <div class="entry-date">${dateText}</div>
+                        <div class="entry-spread">${entry.spread}</div>
+                    </div>
+                    <div class="entry-cards">${tagsHtml}</div>
+                    <div class="entry-notes"><pre>${entry.notes || ''}</pre></div>
+                    <div class="entry-actions"><button class="delete-entry">Delete</button></div>
+                `)
+
+                card.querySelector('.delete-entry').addEventListener('click', () => {
+                    if (!confirm('Delete this reading?')) return
+                    const all = loadEntries()
+                    // Calculate true index in original array (we reversed for UI)
+                    const trueIndex = all.length - 1 - idx
+                    all.splice(trueIndex, 1)
+                    saveEntries(all)
+                    renderEntries()
                 })
+
+                entriesDiv.appendChild(card)
+            })
+        }
+
+        // Form actions
+        saveEntry.addEventListener('click', (e) => {
+            e.preventDefault()
+            if (selectedCards.length === 0) return alert('Add at least one card to the reading.')
+            const entry = {
+                id: Date.now(),
+                cards: selectedCards.slice(),
+                spread: spreadSelect.options[spreadSelect.selectedIndex].text,
+                spreadValue: spreadSelect.value,
+                date: entryDate.value || new Date().toISOString().substring(0,10),
+                notes: notes.value
             }
-        }
-        else {
-            // If the request failed, show the "not ready" status
-            // to inform users that there may be a database connection issue
-            notReadyStatus.style.display = 'block'
-            readyStatus.style.display = 'none'
-            createButton.style.display = 'none'
-            contentArea.style.display = 'none'
-        }
-    } catch (error) {
-        console.error('Error fetching data:', error)
-        notReadyStatus.style.display = 'block'
-    }
-}
+            const all = loadEntries()
+            all.push(entry)
+            saveEntries(all)
+            // reset form
+            selectedCards = []
+            renderTags()
+            spreadSelect.value = 'single'
+            entryDate.value = ''
+            notes.value = ''
+            renderEntries()
+        })
 
-// Revert to the default form title on reset
-myForm.addEventListener('reset', () => formHeading.textContent = '🐈 Share a Cat')
+        clearForm.addEventListener('click', () => {
+            selectedCards = []
+            renderTags()
+            spreadSelect.value = 'single'
+            entryDate.value = ''
+            notes.value = ''
+        })
 
+        // Init
+        renderTags()
+        renderEntries()
 // Reset the form when the create button is clicked. 
-createButton.addEventListener('click', myForm.reset())
-
-// Load initial data
-getData()

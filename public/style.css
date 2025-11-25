@@ -447,3 +447,57 @@ meter::-webkit-meter-even-less-good-value {
 .delete-btn:hover {
     background-color: rgb(183, 28, 28);
 }
+
+/* Tarot journal layout */
+.app-grid {
+    display: grid;
+    grid-template-columns: 380px 1fr;
+    gap: 2rem;
+    width: 100%;
+    max-width: 1100px;
+    margin: 2rem auto;
+    padding: 1rem;
+}
+
+.left-col {
+    background: #ffffffcc;
+    padding: 1rem;
+    border-radius: 0.75rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.right-col {
+    padding: 0.5rem;
+}
+
+label { font-weight: 600; text-align: left; }
+
+input[type="text"], input[type="date"], select, textarea {
+    width: 100%;
+    box-sizing: border-box;
+    border-radius: 0.5rem;
+    border: 1px solid #ccc;
+    padding: 0.5rem;
+}
+
+.tags { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 0.5rem; }
+.tag { background: #222; color: #fff; padding: 0.35rem 0.6rem; border-radius: 999px; display: inline-flex; align-items: center; gap: 0.5rem; }
+.tag .tag-remove { background: transparent; border: none; color: #fff; font-weight: 700; cursor: pointer; margin-left: 0.35rem; }
+.tag.static { background: #444; }
+
+.form-actions { display:flex; gap: 0.5rem; margin-top: 0.5rem; }
+
+.entry-card { background: rgba(255,255,255,0.85); padding: 1rem; border-radius: 0.75rem; margin-bottom: 1rem; box-shadow: 0 2px 6px rgba(0,0,0,0.08); }
+.entry-head { display:flex; justify-content:space-between; gap:1rem; align-items:center; margin-bottom:0.5rem; }
+.entry-date { font-weight:700; color:#333; }
+.entry-spread { font-style:italic; color:#666 }
+.entry-cards { margin-bottom:0.5rem; }
+.entry-notes pre { white-space: pre-wrap; margin:0; }
+.entry-actions { text-align: right; }
+.entry-actions .delete-entry { background: #d32f2f; color: white; padding: 0.4rem 0.6rem; border-radius: 0.5rem; border: none; cursor: pointer; }
+
+@media (max-width: 900px) {
+  .app-grid { grid-template-columns: 1fr; padding: 0.5rem; }
+}
