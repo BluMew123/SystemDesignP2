@@ -1,7 +1,3 @@
-// Load environment variables
-import dotenv from 'dotenv'
-dotenv.config()
-
 // Below we will use the Express Router to define a series of API endpoints.
 // Express will listen for API requests and respond accordingly
 import express from 'express'

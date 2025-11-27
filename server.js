@@ -1,7 +1,3 @@
-// Load environment variables from .env file FIRST
-import dotenv from 'dotenv'
-dotenv.config()
-
 // Express is a framework for building APIs and web apps
 // See also: https://expressjs.com/
 import express from 'express'
