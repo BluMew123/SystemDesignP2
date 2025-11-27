@@ -177,29 +177,80 @@ cardSearch.addEventListener('keydown', (e) => {
   }
 })
 
-// Save reading to localStorage
-function loadEntries() {
+// Load entries from MongoDB via API
+async function loadEntries() {
   try {
-    const raw = localStorage.getItem(STORAGE_KEY)
-    return raw ? JSON.parse(raw) : []
+    const response = await fetch('/data')
+    if (response.ok) {
+      const entries = await response.json()
+      return entries
+    } else {
+      console.error('Failed to load entries from server')
+      return []
+    }
   } catch (err) {
     console.error('Failed to load entries', err)
     return []
   }
 }
 
-function saveEntries(arr) {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(arr))
+// Save entry to MongoDB via API
+async function saveEntry(entry) {
+  try {
+    const response = await fetch('/data', {
+      method: 'POST',
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(entry)
+    })
+    
+    if (!response.ok) {
+      const errorData = await response.json()
+      console.error('Error:', errorData)
+      alert(errorData.error || 'Failed to save entry')
+      return null
+    }
+    
+    const result = await response.json()
+    return result
+  } catch (err) {
+    console.error('Save error:', err)
+    alert('An error occurred while saving')
+    return null
+  }
+}
+
+// Delete entry from MongoDB via API
+async function deleteEntry(id) {
+  try {
+    const response = await fetch(`/data/${id}`, {
+      method: 'DELETE'
+    })
+    
+    if (!response.ok) {
+      const errorData = await response.json()
+      alert(errorData.error || 'Failed to delete entry')
+      return false
+    }
+    
+    return true
+  } catch (err) {
+    console.error('Delete error:', err)
+    alert('An error occurred while deleting')
+    return false
+  }
 }
 
 // Get entries by date (YYYY-MM-DD format)
-function getEntriesByDate(dateStr) {
-  const entries = loadEntries()
+async function getEntriesByDate(dateStr) {
+  const entries = await loadEntries()
   return entries.filter(e => e.date === dateStr)
 }
 
 // Render calendar for the current month
-function renderCalendar() {
+async function renderCalendar() {
   const now = new Date()
   const year = now.getFullYear()
   const month = now.getMonth()
@@ -228,7 +279,7 @@ function renderCalendar() {
   }
   
   // Days of the month
-  const entries = loadEntries()
+  const entries = await loadEntries()
   for (let day = 1; day <= daysInMonth; day++) {
     const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`
     const hasEntry = entries.some(e => e.date === dateStr)
@@ -241,9 +292,9 @@ function renderCalendar() {
   
   // Add click handlers to calendar days
   document.querySelectorAll('.calendar-day[data-date]').forEach(dayEl => {
-    dayEl.addEventListener('click', () => {
+    dayEl.addEventListener('click', async () => {
       const dateStr = dayEl.getAttribute('data-date')
-      const dayEntries = getEntriesByDate(dateStr)
+      const dayEntries = await getEntriesByDate(dateStr)
       if (dayEntries.length > 0) {
         showEntryDetail(dayEntries[0])
       }
@@ -396,28 +447,28 @@ function initFormElements() {
   })
   
   // Save entry handler
-  saveEntry.addEventListener('click', (e) => {
+  saveEntry.addEventListener('click', async (e) => {
     e.preventDefault()
     if (selectedCards.length === 0) return alert('Add at least one card to the reading.')
     const entry = {
-      id: Date.now(),
       cards: selectedCards.slice(),
       spread: spreadSelect.options[spreadSelect.selectedIndex].text,
       spreadValue: spreadSelect.value,
       date: entryDate.value || new Date().toISOString().substring(0, 10),
       notes: notes.value
     }
-    const all = loadEntries()
-    all.push(entry)
-    saveEntries(all)
-    // reset form
-    selectedCards = []
-    renderTags()
-    spreadSelect.value = 'single'
-    entryDate.value = ''
-    notes.value = ''
-    renderCalendar()
-    alert('Entry saved!')
+    
+    const result = await saveEntry(entry)
+    if (result) {
+      // reset form
+      selectedCards = []
+      renderTags()
+      spreadSelect.value = 'single'
+      entryDate.value = ''
+      notes.value = ''
+      await renderCalendar()
+      alert('Entry saved to database!')
+    }
   })
   
   // Clear form handler
