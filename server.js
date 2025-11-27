@@ -1,4 +1,4 @@
-// Load environment variables from .env file
+// Load environment variables from .env file FIRST
 import dotenv from 'dotenv'
 dotenv.config()
 
@@ -18,6 +18,7 @@ app.use(express.json())
 
 // Our API is defined in a separate module to keep things tidy.
 // Let's import our API endpoints and activate them.
+// NOTE: This import happens after dotenv.config() so env vars are available
 import apiRoutes from './routes/api.js'
 app.use('/', apiRoutes)
 

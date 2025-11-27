@@ -12,6 +12,10 @@ const model = 'tarotEntry'
 import { PrismaClient } from '@prisma/client'
 import { MongoClient } from 'mongodb'
 
+if (!process.env.DATABASE_URL) {
+    throw new Error('DATABASE_URL environment variable is not set. Check your .env file.')
+}
+
 const mongoClient = new MongoClient(process.env.DATABASE_URL)
 await mongoClient.connect()
 
