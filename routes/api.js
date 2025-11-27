@@ -10,8 +10,13 @@ const model = 'tarotEntry'
 // Let's import and initialize the Prisma client
 // See also: https://www.prisma.io/docs
 import { PrismaClient } from '@prisma/client'
+import { MongoClient } from 'mongodb'
+
+const mongoClient = new MongoClient(process.env.DATABASE_URL)
+await mongoClient.connect()
+
 const prisma = new PrismaClient({
-    datasourceUrl: process.env.DATABASE_URL
+    adapter: mongoClient
 })
 
 // Connect to the database
