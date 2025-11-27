@@ -41,43 +41,49 @@
   </header>
   <main class="app-grid">
     <aside class="left-col">
-      <h2>Create Tarot Entry</h2>
+      <div id="formView" class="view-container">
+        <h2>Create Tarot Entry</h2>
 
-      <label for="cardSearch">Search Card</label>
-      <input id="cardSearch" list="cardsList" placeholder="Start typing a card name..." autocomplete="on" />
-      <datalist id="cardsList"></datalist>
+        <label for="cardSearch">Search Card</label>
+        <input id="cardSearch" list="cardsList" placeholder="Start typing a card name..." autocomplete="on" />
+        <datalist id="cardsList"></datalist>
 
-      <div id="positionContainer" style="display:none;">
-        <label for="cardPosition">Card Position</label>
-        <select id="cardPosition">
-          <option value="upright">Upright</option>
-          <option value="reversed">Reversed</option>
+        <div id="positionContainer" style="display:none;">
+          <label for="cardPosition">Card Position</label>
+          <select id="cardPosition">
+            <option value="upright">Upright</option>
+            <option value="reversed">Reversed</option>
+          </select>
+          <button id="addCardBtn" type="button" class="add-card-btn">Add Card</button>
+        </div>
+
+        <div id="selectedTags" aria-live="polite" class="tags"></div>
+
+        <label for="spreadSelect">Spread</label>
+        <select id="spreadSelect">
+          <option value="single">Single spread</option>
+          <option value="3">3-spread</option>
+          <option value="4">4-spread</option>
+          <option value="5">5-spread</option>
+          <option value="7">7-spread</option>
+          <option value="celtic">Celtic Cross</option>
+          <option value="other">Other...</option>
         </select>
-        <button id="addCardBtn" type="button" class="add-card-btn">Add Card</button>
+
+        <label for="entryDate">Date</label>
+        <input type="date" id="entryDate" />
+
+        <label for="notes">Notes</label>
+        <textarea id="notes" rows="6" placeholder="Write your journal notes here..."></textarea>
+
+        <div class="form-actions">
+          <button id="saveEntry" class="save">Save Entry</button>
+          <button id="clearForm" type="button" class="cancel">Clear</button>
+        </div>
       </div>
 
-      <div id="selectedTags" aria-live="polite" class="tags"></div>
-
-      <label for="spreadSelect">Spread</label>
-      <select id="spreadSelect">
-        <option value="single">Single spread</option>
-        <option value="3">3-spread</option>
-        <option value="4">4-spread</option>
-        <option value="5">5-spread</option>
-        <option value="7">7-spread</option>
-        <option value="celtic">Celtic Cross</option>
-        <option value="other">Other...</option>
-      </select>
-
-      <label for="entryDate">Date</label>
-      <input type="date" id="entryDate" />
-
-      <label for="notes">Notes</label>
-      <textarea id="notes" rows="6" placeholder="Write your journal notes here..."></textarea>
-
-      <div class="form-actions">
-        <button id="saveEntry" class="save">Save Entry</button>
-        <button id="clearForm" type="button" class="cancel">Clear</button>
+      <div id="detailView" class="view-container" style="display:none;">
+        <!-- Detail view content will be populated dynamically -->
       </div>
     </aside>
 

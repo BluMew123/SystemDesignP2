@@ -11,7 +11,8 @@ const notes = document.querySelector('#notes')
 const saveEntry = document.querySelector('#saveEntry')
 const clearForm = document.querySelector('#clearForm')
 const calendarContainer = document.querySelector('#calendarContainer')
-const leftCol = document.querySelector('.left-col')
+const formView = document.querySelector('#formView')
+const detailView = document.querySelector('#detailView')
 
 // Local storage key
 const STORAGE_KEY = 'tarot-journal-entries'
@@ -108,6 +109,51 @@ tarotCards.forEach(card => {
 let selectedCards = [] // { name, position }
 let currentView = 'form' // 'form' or 'detail'
 let currentDetailDate = null
+
+// Save entry handler
+saveEntry.addEventListener('click', async (e) => {
+  e.preventDefault()
+  console.log('Save button clicked')
+  console.log('Selected cards:', selectedCards)
+  if (selectedCards.length === 0) return alert('Add at least one card to the reading.')
+  
+  // Convert date string to ISO-8601 DateTime for Prisma
+  const dateStr = entryDate.value || new Date().toISOString().substring(0, 10)
+  const dateTime = new Date(dateStr + 'T00:00:00.000Z').toISOString()
+  
+  const entry = {
+    cards: selectedCards.slice(),
+    spread: spreadSelect.options[spreadSelect.selectedIndex].text,
+    spreadValue: spreadSelect.value,
+    date: dateTime,
+    notes: notes.value
+  }
+  
+  console.log('Saving entry:', entry)
+  const result = await saveEntryToDatabase(entry)
+  console.log('Save result:', result)
+  if (result) {
+    // reset form
+    selectedCards = []
+    renderTags()
+    spreadSelect.value = 'single'
+    entryDate.value = ''
+    notes.value = ''
+    await renderCalendar()
+    alert('Entry saved to database!')
+  } else {
+    alert('Failed to save entry. Check console for errors.')
+  }
+})
+
+// Clear form handler
+clearForm.addEventListener('click', () => {
+  selectedCards = []
+  renderTags()
+  spreadSelect.value = 'single'
+  entryDate.value = ''
+  notes.value = ''
+})
 
 
 function showPositionSelector() {
@@ -319,7 +365,7 @@ function showEntryDetail(entry) {
     `<span class="tag static">${c.name} (${c.position})</span>`
   ).join(' ')
   
-  leftCol.innerHTML = DOMPurify.sanitize(`
+  detailView.innerHTML = DOMPurify.sanitize(`
     <button id="backToForm" class="back-btn">← Back to Create Entry</button>
     <h2>Entry - ${dateText}</h2>
     
@@ -333,6 +379,10 @@ function showEntryDetail(entry) {
     <div class="detail-notes"><pre>${entry.notes || ''}</pre></div>
   `)
   
+  // Toggle views
+  formView.style.display = 'none'
+  detailView.style.display = 'block'
+  
   document.querySelector('#backToForm').addEventListener('click', showFormView)
 }
 
@@ -341,152 +391,9 @@ function showFormView() {
   currentView = 'form'
   currentDetailDate = null
   
-  leftCol.innerHTML = `
-    <h2>Create Tarot Entry</h2>
-
-    <label for="cardSearch">Search Card</label>
-    <input id="cardSearch" list="cardsList" placeholder="Start typing a card name..." autocomplete="on" />
-    <datalist id="cardsList"></datalist>
-
-    <div id="positionContainer" style="display:none;">
-      <label for="cardPosition">Card Position</label>
-      <select id="cardPosition">
-        <option value="upright">Upright</option>
-        <option value="reversed">Reversed</option>
-      </select>
-    </div>
-
-    <div id="selectedTags" aria-live="polite" class="tags"></div>
-
-    <label for="spreadSelect">Spread</label>
-    <select id="spreadSelect">
-      <option value="single">Single spread</option>
-      <option value="3">3-spread</option>
-      <option value="4">4-spread</option>
-      <option value="5">5-spread</option>
-      <option value="7">7-spread</option>
-      <option value="celtic">Celtic Cross</option>
-      <option value="other">Other...</option>
-    </select>
-
-    <label for="entryDate">Date</label>
-    <input type="date" id="entryDate" />
-
-    <label for="notes">Notes</label>
-    <textarea id="notes" rows="6" placeholder="Write your journal notes here..."></textarea>
-
-    <div class="form-actions">
-      <button id="saveEntry" class="save">Save Entry</button>
-      <button id="clearForm" type="button" class="cancel">Clear</button>
-    </div>
-  `
-  
-  // Re-initialize all form elements and event listeners
-  initFormElements()
-}
-
-// Initialize form elements and event listeners
-function initFormElements() {
-  const cardSearch = document.querySelector('#cardSearch')
-  const cardsList = document.querySelector('#cardsList')
-  const positionContainer = document.querySelector('#positionContainer')
-  const cardPosition = document.querySelector('#cardPosition')
-  const addCardBtn = document.querySelector('#addCardBtn')
-  const selectedTags = document.querySelector('#selectedTags')
-  const spreadSelect = document.querySelector('#spreadSelect')
-  const entryDate = document.querySelector('#entryDate')
-  const notes = document.querySelector('#notes')
-  const saveEntry = document.querySelector('#saveEntry')
-  const clearForm = document.querySelector('#clearForm')
-  
-  // Repopulate datalist
-  tarotCards.forEach(card => {
-    const option = document.createElement('option')
-    option.value = card
-    cardsList.appendChild(option)
-  })
-  
-  // Card search change handler
-  cardSearch.addEventListener('change', (e) => {
-    const val = e.target.value.trim()
-    if (!val) return
-    const found = tarotCards.find(c => c.toLowerCase() === val.toLowerCase())
-    if (found) {
-      positionContainer.style.display = 'block'
-      cardPosition.focus()
-    } else {
-      alert('Card not found. Try selecting from the list.')
-    }
-  })
-  
-  // Add card button handler
-  addCardBtn.addEventListener('click', () => {
-    const name = cardSearch.value.trim()
-    const pos = cardPosition.value
-    if (!name) return
-    selectedCards.push({ name, position: pos })
-    renderTags()
-    cardSearch.value = ''
-    cardPosition.value = 'upright'
-    positionContainer.style.display = 'none'
-  })
-  
-  // Keydown handler
-  cardSearch.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter') {
-      e.preventDefault()
-      const val = cardSearch.value.trim()
-      const found = tarotCards.find(c => c.toLowerCase() === val.toLowerCase())
-      if (found) {
-        positionContainer.style.display = 'block'
-        cardPosition.focus()
-      } else {
-        alert('Card not found. Please choose a card from the suggestions.')
-      }
-    }
-  })
-  
-  // Save entry handler
-  saveEntry.addEventListener('click', async (e) => {
-    e.preventDefault()
-    console.log('Save button clicked')
-    console.log('Selected cards:', selectedCards)
-    if (selectedCards.length === 0) return alert('Add at least one card to the reading.')
-    const entry = {
-      cards: selectedCards.slice(),
-      spread: spreadSelect.options[spreadSelect.selectedIndex].text,
-      spreadValue: spreadSelect.value,
-      date: entryDate.value || new Date().toISOString().substring(0, 10),
-      notes: notes.value
-    }
-    
-    console.log('Saving entry:', entry)
-    const result = await saveEntryToDatabase(entry)
-    console.log('Save result:', result)
-    if (result) {
-      // reset form
-      selectedCards = []
-      renderTags()
-      spreadSelect.value = 'single'
-      entryDate.value = ''
-      notes.value = ''
-      await renderCalendar()
-      alert('Entry saved to database!')
-    } else {
-      alert('Failed to save entry. Check console for errors.')
-    }
-  })
-  
-  // Clear form handler
-  clearForm.addEventListener('click', () => {
-    selectedCards = []
-    renderTags()
-    spreadSelect.value = 'single'
-    entryDate.value = ''
-    notes.value = ''
-  })
-  
-  renderTags()
+  // Toggle views
+  formView.style.display = 'block'
+  detailView.style.display = 'none'
 }
 
 // Init
