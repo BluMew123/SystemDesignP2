@@ -10,7 +10,9 @@ const model = 'tarotEntry'
 // Let's import and initialize the Prisma client
 // See also: https://www.prisma.io/docs
 import { PrismaClient } from '@prisma/client'
-const prisma = new PrismaClient()
+const prisma = new PrismaClient({
+    datasourceUrl: process.env.DATABASE_URL
+})
 
 // Connect to the database
 prisma.$connect().then(() => {
