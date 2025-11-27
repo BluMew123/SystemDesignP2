@@ -7,24 +7,17 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model cats {
-  id             String    @id @default(auto()) @map("_id") @db.ObjectId
-  adoptionDate   DateTime? @db.Date
-  birthDate      DateTime? @db.Date
-  breed          String?
-  declawed       Boolean?
-  description    String?
-  fosterDate     DateTime? @db.Date
-  fosterDuration Int?
-  location       String?
-  name           String?
-  neutered       Boolean?
-  sex            String?
-  primaryColor   String?
-  secondaryColor String?
-  playfulness    Int?
-  appetite       Int?
-  microchip      Int?
-  isAdopted      Boolean?
-  food           String?
+model TarotEntry {
+  id         String   @id @default(auto()) @map("_id") @db.ObjectId
+  date       DateTime @db.Date
+  spread     String
+  spreadValue String?
+  notes      String?
+  cards      Card[]
+  createdAt  DateTime @default(now())
+}
+
+type Card {
+  name     String
+  position String
 }
