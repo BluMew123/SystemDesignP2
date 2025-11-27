@@ -593,3 +593,18 @@ input[type="text"], input[type="date"], select, textarea {
   margin: 0;
   font-family: inherit;
 }
+
+.add-card-btn {
+  background: rgb(3, 136, 3);
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  margin-top: 0.5rem;
+  font-weight: 600;
+}
+
+.add-card-btn:hover {
+  background: rgb(3, 103, 3);
+}

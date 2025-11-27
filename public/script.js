@@ -149,8 +149,9 @@ cardSearch.addEventListener('change', (e) => {
   }
 })
 
-// When position selected, add tag and clear search
-cardPosition.addEventListener('change', () => {
+// When add card button is clicked
+const addCardBtn = document.querySelector('#addCardBtn')
+addCardBtn.addEventListener('click', () => {
   const name = cardSearch.value.trim()
   const pos = cardPosition.value
   if (!name) return
@@ -339,6 +340,7 @@ function initFormElements() {
   const cardsList = document.querySelector('#cardsList')
   const positionContainer = document.querySelector('#positionContainer')
   const cardPosition = document.querySelector('#cardPosition')
+  const addCardBtn = document.querySelector('#addCardBtn')
   const selectedTags = document.querySelector('#selectedTags')
   const spreadSelect = document.querySelector('#spreadSelect')
   const entryDate = document.querySelector('#entryDate')
@@ -366,8 +368,8 @@ function initFormElements() {
     }
   })
   
-  // Position change handler
-  cardPosition.addEventListener('change', () => {
+  // Add card button handler
+  addCardBtn.addEventListener('click', () => {
     const name = cardSearch.value.trim()
     const pos = cardPosition.value
     if (!name) return
