@@ -501,3 +501,95 @@ input[type="text"], input[type="date"], select, textarea {
 @media (max-width: 900px) {
   .app-grid { grid-template-columns: 1fr; padding: 0.5rem; }
 }
+
+/* Calendar styles */
+.calendar-header {
+  font-size: 1.5rem;
+  font-weight: 700;
+  text-align: center;
+  margin-bottom: 1rem;
+  color: #333;
+}
+
+.calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 0.5rem;
+}
+
+.calendar-day-name {
+  text-align: center;
+  font-weight: 600;
+  padding: 0.5rem;
+  color: #666;
+  font-size: 0.9rem;
+}
+
+.calendar-day {
+  aspect-ratio: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #e0e0e0;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.2s;
+}
+
+.calendar-day.empty {
+  background: transparent;
+  cursor: default;
+}
+
+.calendar-day:not(.empty):hover {
+  transform: scale(1.05);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+}
+
+.calendar-day.has-entry {
+  background: #9b59b6;
+  color: white;
+  font-weight: 700;
+}
+
+.calendar-day.has-entry:hover {
+  background: #8e44ad;
+}
+
+/* Detail view styles */
+.back-btn {
+  background: #666;
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  margin-bottom: 1rem;
+  font-weight: 600;
+}
+
+.back-btn:hover {
+  background: #555;
+}
+
+.detail-spread {
+  background: #f5f5f5;
+  padding: 0.75rem;
+  border-radius: 0.5rem;
+  margin-bottom: 1rem;
+  font-weight: 600;
+}
+
+.detail-notes {
+  background: #f5f5f5;
+  padding: 1rem;
+  border-radius: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+.detail-notes pre {
+  white-space: pre-wrap;
+  margin: 0;
+  font-family: inherit;
+}
