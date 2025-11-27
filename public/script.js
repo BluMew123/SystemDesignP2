@@ -351,6 +351,8 @@ async function renderCalendar() {
   
   // Days of the month
   const entries = await loadEntries()
+  const todayStr = new Date().toISOString().substring(0, 10)
+  
   for (let day = 1; day <= daysInMonth; day++) {
     const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`
     // Check if any entry has this date (comparing just the date portion)
@@ -358,7 +360,10 @@ async function renderCalendar() {
       const entryDate = new Date(e.date).toISOString().substring(0, 10)
       return entryDate === dateStr
     })
-    const className = hasEntry ? 'calendar-day has-entry' : 'calendar-day'
+    
+    let className = hasEntry ? 'calendar-day has-entry' : 'calendar-day'
+    if (dateStr === todayStr) className += ' today'
+    
     html += `<div class="${className}" data-date="${dateStr}">${day}</div>`
   }
   
@@ -368,6 +373,11 @@ async function renderCalendar() {
   // Add click handlers to calendar days
   document.querySelectorAll('.calendar-day[data-date]').forEach(dayEl => {
     dayEl.addEventListener('click', async () => {
+      // Remove selected class from all days
+      document.querySelectorAll('.calendar-day').forEach(d => d.classList.remove('selected'))
+      // Add selected class to clicked day
+      dayEl.classList.add('selected')
+      
       const dateStr = dayEl.getAttribute('data-date')
       const dayEntries = await getEntriesByDate(dateStr)
       if (dayEntries.length > 0) {

@@ -44,7 +44,7 @@
       <div id="formView" class="view-container">
         <h2>Create Tarot Entry</h2>
 
-        <label for="cardSearch">Search Card</label>
+        <label for="cardSearch">What card(s) did you pull?</label>
         <input id="cardSearch" list="cardsList" placeholder="Start typing a card name..." autocomplete="on" />
         <datalist id="cardsList"></datalist>
 
@@ -59,7 +59,7 @@
 
         <div id="selectedTags" aria-live="polite" class="tags"></div>
 
-        <label for="spreadSelect">Spread</label>
+        <label for="spreadSelect">Card Spread?</label>
         <select id="spreadSelect">
           <option value="single">Single spread</option>
           <option value="3">3-spread</option>
@@ -70,10 +70,10 @@
           <option value="other">Other...</option>
         </select>
 
-        <label for="entryDate">Date</label>
+        <label for="entryDate">Date of Journal Entry</label>
         <input type="date" id="entryDate" />
 
-        <label for="notes">Notes</label>
+        <label for="notes">Journal Notes</label>
         <textarea id="notes" rows="6" placeholder="Write your journal notes here..."></textarea>
 
         <div class="form-actions">
