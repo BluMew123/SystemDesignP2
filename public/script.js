@@ -1,15 +1,6 @@
 // Tarot Journal client-side logic
 
-const cardSearch = document.querySelector('#cardSearch')
-const cardsList = document.querySelector('#cardsList')
-const positionContainer = document.querySelector('#positionContainer')
-const cardPosition = document.querySelector('#cardPosition')
-const selectedTags = document.querySelector('#selectedTags')
-const spreadSelect = document.querySelector('#spreadSelect')
-const entryDate = document.querySelector('#entryDate')
-const notes = document.querySelector('#notes')
-const saveEntry = document.querySelector('#saveEntry')
-const clearForm = document.querySelector('#clearForm')
+let cardSearch, cardsList, positionContainer, cardPosition, selectedTags, spreadSelect, entryDate, notes, saveEntry, clearForm, addCardBtn
 const calendarContainer = document.querySelector('#calendarContainer')
 const formView = document.querySelector('#formView')
 const detailView = document.querySelector('#detailView')
@@ -99,19 +90,50 @@ const tarotCards = [
   "Ten of Swords"
 ]
 
-// Populate datalist
-tarotCards.forEach(card => {
-  const option = document.createElement('option')
-  option.value = card
-  cardsList.appendChild(option)
-})
-
 let selectedCards = [] // { name, position }
 let currentView = 'form' // 'form' or 'detail'
-let currentDetailDate = null
+let currentDetailEntry = null
 
-// Save entry handler
-saveEntry.addEventListener('click', async (e) => {
+// Initialize function
+function init() {
+  console.log('Initializing app...')
+  
+  // Select all form elements
+  cardSearch = document.querySelector('#cardSearch')
+  cardsList = document.querySelector('#cardsList')
+  positionContainer = document.querySelector('#positionContainer')
+  cardPosition = document.querySelector('#cardPosition')
+  selectedTags = document.querySelector('#selectedTags')
+  spreadSelect = document.querySelector('#spreadSelect')
+  entryDate = document.querySelector('#entryDate')
+  notes = document.querySelector('#notes')
+  saveEntry = document.querySelector('#saveEntry')
+  clearForm = document.querySelector('#clearForm')
+  addCardBtn = document.querySelector('#addCardBtn')
+  
+  console.log('Elements found:', { cardSearch, calendarContainer, saveEntry })
+  
+  // Populate datalist
+  tarotCards.forEach(card => {
+    const option = document.createElement('option')
+    option.value = card
+    cardsList.appendChild(option)
+  })
+  
+  console.log('Setting up event listeners...')
+  setupEventListeners()
+  
+  console.log('Rendering tags...')
+  renderTags()
+  
+  console.log('Rendering calendar...')
+  renderCalendar()
+}
+
+// Set up all event listeners
+function setupEventListeners() {
+  // Save entry handler
+  saveEntry.addEventListener('click', async (e) => {
   e.preventDefault()
   console.log('Save button clicked')
   console.log('Selected cards:', selectedCards)
@@ -146,14 +168,55 @@ saveEntry.addEventListener('click', async (e) => {
   }
 })
 
-// Clear form handler
-clearForm.addEventListener('click', () => {
-  selectedCards = []
-  renderTags()
-  spreadSelect.value = 'single'
-  entryDate.value = ''
-  notes.value = ''
-})
+  // Clear form handler
+  clearForm.addEventListener('click', () => {
+    selectedCards = []
+    renderTags()
+    spreadSelect.value = 'single'
+    entryDate.value = ''
+    notes.value = ''
+  })
+  
+  // Card search change handler
+  cardSearch.addEventListener('change', (e) => {
+    const val = e.target.value.trim()
+    if (!val) return
+    const found = tarotCards.find(c => c.toLowerCase() === val.toLowerCase())
+    if (found) {
+      showPositionSelector()
+      cardPosition.focus()
+    } else {
+      alert('Card not found. Try selecting from the list.')
+    }
+  })
+  
+  // Add card button handler
+  addCardBtn.addEventListener('click', () => {
+    const name = cardSearch.value.trim()
+    const pos = cardPosition.value
+    if (!name) return
+    selectedCards.push({ name, position: pos })
+    renderTags()
+    cardSearch.value = ''
+    cardPosition.value = 'upright'
+    hidePositionSelector()
+  })
+  
+  // Allow Enter on search
+  cardSearch.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault()
+      const val = cardSearch.value.trim()
+      const found = tarotCards.find(c => c.toLowerCase() === val.toLowerCase())
+      if (found) {
+        showPositionSelector()
+        cardPosition.focus()
+      } else {
+        alert('Card not found. Please choose a card from the suggestions.')
+      }
+    }
+  })
+}
 
 
 function showPositionSelector() {
@@ -181,47 +244,6 @@ function renderTags() {
     selectedTags.appendChild(chip)
   })
 }
-
-// When user selects a card (via datalist or typed and Enter pressed)
-cardSearch.addEventListener('change', (e) => {
-  const val = e.target.value.trim()
-  if (!val) return
-  const found = tarotCards.find(c => c.toLowerCase() === val.toLowerCase())
-  if (found) {
-    showPositionSelector()
-    cardPosition.focus()
-  } else {
-    alert('Card not found. Try selecting from the list.')
-  }
-})
-
-// When add card button is clicked
-const addCardBtn = document.querySelector('#addCardBtn')
-addCardBtn.addEventListener('click', () => {
-  const name = cardSearch.value.trim()
-  const pos = cardPosition.value
-  if (!name) return
-  selectedCards.push({ name, position: pos })
-  renderTags()
-  cardSearch.value = ''
-  cardPosition.value = 'upright'
-  hidePositionSelector()
-})
-
-// Allow Enter on search to act like selecting
-cardSearch.addEventListener('keydown', (e) => {
-  if (e.key === 'Enter') {
-    e.preventDefault()
-    const val = cardSearch.value.trim()
-    const found = tarotCards.find(c => c.toLowerCase() === val.toLowerCase())
-    if (found) {
-      showPositionSelector()
-      cardPosition.focus()
-    } else {
-      alert('Card not found. Please choose a card from the suggestions.')
-    }
-  }
-})
 
 // Load entries from MongoDB via API
 async function loadEntries() {
@@ -292,7 +314,10 @@ async function deleteEntry(id) {
 // Get entries by date (YYYY-MM-DD format)
 async function getEntriesByDate(dateStr) {
   const entries = await loadEntries()
-  return entries.filter(e => e.date === dateStr)
+  return entries.filter(e => {
+    const entryDate = new Date(e.date).toISOString().substring(0, 10)
+    return entryDate === dateStr
+  })
 }
 
 // Render calendar for the current month
@@ -328,7 +353,11 @@ async function renderCalendar() {
   const entries = await loadEntries()
   for (let day = 1; day <= daysInMonth; day++) {
     const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`
-    const hasEntry = entries.some(e => e.date === dateStr)
+    // Check if any entry has this date (comparing just the date portion)
+    const hasEntry = entries.some(e => {
+      const entryDate = new Date(e.date).toISOString().substring(0, 10)
+      return entryDate === dateStr
+    })
     const className = hasEntry ? 'calendar-day has-entry' : 'calendar-day'
     html += `<div class="${className}" data-date="${dateStr}">${day}</div>`
   }
@@ -351,9 +380,9 @@ async function renderCalendar() {
 // Show entry detail view
 function showEntryDetail(entry) {
   currentView = 'detail'
-  currentDetailDate = entry.date
+  currentDetailEntry = entry
   
-  const dateObj = new Date(entry.date + 'T00:00:00')
+  const dateObj = new Date(entry.date)
   const dateText = dateObj.toLocaleDateString('en-US', { 
     weekday: 'long', 
     year: 'numeric', 
@@ -377,6 +406,11 @@ function showEntryDetail(entry) {
     
     <h3>Your Journal Notes</h3>
     <div class="detail-notes"><pre>${entry.notes || ''}</pre></div>
+    
+    <div class="form-actions">
+      <button id="editEntry" class="save">Edit Entry</button>
+      <button id="deleteEntry" class="delete-btn">Delete Entry</button>
+    </div>
   `)
   
   // Toggle views
@@ -384,18 +418,122 @@ function showEntryDetail(entry) {
   detailView.style.display = 'block'
   
   document.querySelector('#backToForm').addEventListener('click', showFormView)
+  document.querySelector('#editEntry').addEventListener('click', () => showEditView(entry))
+  document.querySelector('#deleteEntry').addEventListener('click', async () => {
+    if (confirm('Are you sure you want to delete this entry?')) {
+      const success = await deleteEntry(entry.id)
+      if (success) {
+        alert('Entry deleted!')
+        showFormView()
+        await renderCalendar()
+      }
+    }
+  })
 }
 
 // Show form view
 function showFormView() {
   currentView = 'form'
-  currentDetailDate = null
+  currentDetailEntry = null
+  
+  // Clear the form
+  selectedCards = []
+  renderTags()
+  spreadSelect.value = 'single'
+  entryDate.value = ''
+  notes.value = ''
   
   // Toggle views
   formView.style.display = 'block'
   detailView.style.display = 'none'
 }
 
-// Init
-renderTags()
-renderCalendar() 
+// Show edit view - populate form with existing entry
+function showEditView(entry) {
+  currentView = 'form'
+  currentDetailEntry = entry
+  
+  // Populate form with existing data
+  selectedCards = [...entry.cards]
+  renderTags()
+  
+  // Set spread
+  spreadSelect.value = entry.spreadValue || 'single'
+  
+  // Set date
+  const dateStr = new Date(entry.date).toISOString().substring(0, 10)
+  entryDate.value = dateStr
+  
+  // Set notes
+  notes.value = entry.notes || ''
+  
+  // Change save button to update button
+  saveEntry.textContent = 'Update Entry'
+  saveEntry.onclick = async (e) => {
+    e.preventDefault()
+    console.log('Update button clicked')
+    if (selectedCards.length === 0) return alert('Add at least one card to the reading.')
+    
+    const dateStr = entryDate.value || new Date().toISOString().substring(0, 10)
+    const dateTime = new Date(dateStr + 'T00:00:00.000Z').toISOString()
+    
+    const updatedEntry = {
+      cards: selectedCards.slice(),
+      spread: spreadSelect.options[spreadSelect.selectedIndex].text,
+      spreadValue: spreadSelect.value,
+      date: dateTime,
+      notes: notes.value
+    }
+    
+    console.log('Updating entry:', updatedEntry)
+    const result = await updateEntry(entry.id, updatedEntry)
+    console.log('Update result:', result)
+    
+    if (result) {
+      alert('Entry updated successfully!')
+      showFormView()
+      await renderCalendar()
+      // Reset save button
+      saveEntry.textContent = 'Save Entry'
+      saveEntry.onclick = null
+      init() // Reinitialize to restore original handlers
+    } else {
+      alert('Failed to update entry. Check console for errors.')
+    }
+  }
+  
+  // Toggle views
+  formView.style.display = 'block'
+  detailView.style.display = 'none'
+}
+
+// Update entry in MongoDB via API
+async function updateEntry(id, entry) {
+  try {
+    const response = await fetch(`/data/${id}`, {
+      method: 'PUT',
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(entry)
+    })
+    
+    if (!response.ok) {
+      const errorData = await response.json()
+      console.error('Error:', errorData)
+      alert(errorData.error || 'Failed to update entry')
+      return null
+    }
+    
+    const result = await response.json()
+    return result
+  } catch (err) {
+    console.error('Update error:', err)
+    alert('An error occurred while updating')
+    return null
+  }
+}
+
+// Call init when DOM is ready
+init() 
