@@ -449,6 +449,8 @@ function initFormElements() {
   // Save entry handler
   saveEntry.addEventListener('click', async (e) => {
     e.preventDefault()
+    console.log('Save button clicked')
+    console.log('Selected cards:', selectedCards)
     if (selectedCards.length === 0) return alert('Add at least one card to the reading.')
     const entry = {
       cards: selectedCards.slice(),
@@ -458,7 +460,9 @@ function initFormElements() {
       notes: notes.value
     }
     
+    console.log('Saving entry:', entry)
     const result = await saveEntryToDatabase(entry)
+    console.log('Save result:', result)
     if (result) {
       // reset form
       selectedCards = []
@@ -468,6 +472,8 @@ function initFormElements() {
       notes.value = ''
       await renderCalendar()
       alert('Entry saved to database!')
+    } else {
+      alert('Failed to save entry. Check console for errors.')
     }
   })
   
