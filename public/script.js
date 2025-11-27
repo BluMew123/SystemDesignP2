@@ -195,7 +195,7 @@ async function loadEntries() {
 }
 
 // Save entry to MongoDB via API
-async function saveEntry(entry) {
+async function saveEntryToDatabase(entry) {
   try {
     const response = await fetch('/data', {
       method: 'POST',
@@ -458,7 +458,7 @@ function initFormElements() {
       notes: notes.value
     }
     
-    const result = await saveEntry(entry)
+    const result = await saveEntryToDatabase(entry)
     if (result) {
       // reset form
       selectedCards = []
