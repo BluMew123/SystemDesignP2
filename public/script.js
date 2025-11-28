@@ -1,9 +1,10 @@
 // Tarot Journal client-side logic
 
-let cardSearch, cardsList, positionContainer, cardPosition, selectedTags, spreadSelect, entryDate, notes, saveEntry, clearForm, addCardBtn
+let cardSearch, autocompleteDropdown, positionContainer, cardPosition, selectedTags, spreadSelect, entryDate, notes, saveEntry, clearForm, addCardBtn
 const calendarContainer = document.querySelector('#calendarContainer')
 const formView = document.querySelector('#formView')
 const detailView = document.querySelector('#detailView')
+let selectedAutocompleteIndex = -1
 
 // Local storage key
 const STORAGE_KEY = 'tarot-journal-entries'
@@ -100,7 +101,7 @@ function init() {
   
   // Select all form elements
   cardSearch = document.querySelector('#cardSearch')
-  cardsList = document.querySelector('#cardsList')
+  autocompleteDropdown = document.querySelector('#autocompleteDropdown')
   positionContainer = document.querySelector('#positionContainer')
   cardPosition = document.querySelector('#cardPosition')
   selectedTags = document.querySelector('#selectedTags')
@@ -112,13 +113,6 @@ function init() {
   addCardBtn = document.querySelector('#addCardBtn')
   
   console.log('Elements found:', { cardSearch, calendarContainer, saveEntry })
-  
-  // Populate datalist
-  tarotCards.forEach(card => {
-    const option = document.createElement('option')
-    option.value = card
-    cardsList.appendChild(option)
-  })
   
   console.log('Setting up event listeners...')
   setupEventListeners()
@@ -177,16 +171,25 @@ function setupEventListeners() {
     notes.value = ''
   })
   
-  // Card search change handler
-  cardSearch.addEventListener('change', (e) => {
+  // Card search input handler for autocomplete
+  cardSearch.addEventListener('input', (e) => {
     const val = e.target.value.trim()
-    if (!val) return
-    const found = tarotCards.find(c => c.toLowerCase() === val.toLowerCase())
-    if (found) {
-      showPositionSelector()
-      cardPosition.focus()
-    } else {
-      alert('Card not found. Try selecting from the list.')
+    if (!val) {
+      hideAutocomplete()
+      return
+    }
+    
+    const matches = tarotCards.filter(c => 
+      c.toLowerCase().includes(val.toLowerCase())
+    )
+    
+    showAutocomplete(matches)
+  })
+  
+  // Click outside to close dropdown
+  document.addEventListener('click', (e) => {
+    if (!e.target.closest('.autocomplete-container')) {
+      hideAutocomplete()
     }
   })
   
@@ -202,18 +205,37 @@ function setupEventListeners() {
     hidePositionSelector()
   })
   
-  // Allow Enter on search
+  // Keyboard navigation for autocomplete
   cardSearch.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter') {
+    const dropdown = autocompleteDropdown
+    const items = dropdown.querySelectorAll('.autocomplete-item')
+    
+    if (e.key === 'ArrowDown') {
       e.preventDefault()
-      const val = cardSearch.value.trim()
-      const found = tarotCards.find(c => c.toLowerCase() === val.toLowerCase())
-      if (found) {
-        showPositionSelector()
-        cardPosition.focus()
+      selectedAutocompleteIndex = Math.min(selectedAutocompleteIndex + 1, items.length - 1)
+      updateAutocompleteSelection(items)
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault()
+      selectedAutocompleteIndex = Math.max(selectedAutocompleteIndex - 1, -1)
+      updateAutocompleteSelection(items)
+    } else if (e.key === 'Enter') {
+      e.preventDefault()
+      if (selectedAutocompleteIndex >= 0 && items[selectedAutocompleteIndex]) {
+        items[selectedAutocompleteIndex].click()
       } else {
-        alert('Card not found. Please choose a card from the suggestions.')
+        const val = cardSearch.value.trim()
+        const found = tarotCards.find(c => c.toLowerCase() === val.toLowerCase())
+        if (found) {
+          cardSearch.value = found
+          hideAutocomplete()
+          showPositionSelector()
+          cardPosition.focus()
+        } else {
+          alert('Card not found. Please choose a card from the suggestions.')
+        }
       }
+    } else if (e.key === 'Escape') {
+      hideAutocomplete()
     }
   })
 }
@@ -225,6 +247,47 @@ function showPositionSelector() {
 
 function hidePositionSelector() {
   positionContainer.style.display = 'none'
+}
+
+function showAutocomplete(matches) {
+  selectedAutocompleteIndex = -1
+  
+  if (matches.length === 0) {
+    hideAutocomplete()
+    return
+  }
+  
+  autocompleteDropdown.innerHTML = ''
+  matches.slice(0, 10).forEach((card, index) => {
+    const item = document.createElement('div')
+    item.className = 'autocomplete-item'
+    item.textContent = card
+    item.addEventListener('click', () => {
+      cardSearch.value = card
+      hideAutocomplete()
+      showPositionSelector()
+      cardPosition.focus()
+    })
+    autocompleteDropdown.appendChild(item)
+  })
+  
+  autocompleteDropdown.classList.add('show')
+}
+
+function hideAutocomplete() {
+  autocompleteDropdown.classList.remove('show')
+  selectedAutocompleteIndex = -1
+}
+
+function updateAutocompleteSelection(items) {
+  items.forEach((item, index) => {
+    if (index === selectedAutocompleteIndex) {
+      item.classList.add('selected')
+      item.scrollIntoView({ block: 'nearest' })
+    } else {
+      item.classList.remove('selected')
+    }
+  })
 }
 
 function renderTags() {

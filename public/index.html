@@ -10,19 +10,9 @@
 
   <title>Tarot Journal</title>
 
-  <link
-    rel="preconnect"
-    href="https://fonts.googleapis.com"
-  >
-  <link
-    rel="preconnect"
-    href="https://fonts.gstatic.com"
-    crossorigin
-  >
-  <link
-    href="https://fonts.googleapis.com/css2?family=Jost:wght@100..900&display=swap"
-    rel="stylesheet"
-  >
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Balsamiq+Sans:wght@400;700&display=swap" rel="stylesheet">
   <link
     rel="stylesheet"
     href="style.css"
@@ -45,8 +35,10 @@
         <h2>Create Tarot Entry</h2>
 
         <label for="cardSearch">What card(s) did you pull?</label>
-        <input id="cardSearch" list="cardsList" placeholder="Start typing a card name..." autocomplete="on" />
-        <datalist id="cardsList"></datalist>
+        <div class="autocomplete-container">
+          <input id="cardSearch" type="text" placeholder="Start typing a card name..." autocomplete="off" />
+          <div id="autocompleteDropdown" class="autocomplete-dropdown"></div>
+        </div>
 
         <div id="positionContainer" style="display:none;">
           <label for="cardPosition">Card Position</label>
@@ -90,6 +82,27 @@
     <section class="right-col">
       <h2>Journal Entry Calendar</h2>
       <div id="calendarContainer"></div>
+      <div class="calendar-legend">
+        <p class="legend-blurb">Select the dates on the calendar to see & edit your past entries!</p>
+        <div class="legend-items">
+          <div class="legend-item">
+            <span class="legend-box purple"></span>
+            <span>Completed entry</span>
+          </div>
+          <div class="legend-item">
+            <span class="legend-box grey"></span>
+            <span>Incomplete entry</span>
+          </div>
+          <div class="legend-item">
+            <span class="legend-box green-border"></span>
+            <span>Present day</span>
+          </div>
+          <div class="legend-item">
+            <span class="legend-box red-border"></span>
+            <span>Selected date</span>
+          </div>
+        </div>
+      </div>
     </section>
   </main>
 
