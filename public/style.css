@@ -726,3 +726,183 @@ input[type="text"], input[type="date"], input[list], select, textarea {
 .add-card-btn:hover {
   background: rgb(3, 103, 3);
 }
+
+/* Card Animation Modal Styles */
+.animation-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.85);
+  display: none;
+  justify-content: center;
+  align-items: center;
+  z-index: 10000;
+}
+
+.animation-modal.show {
+  display: flex;
+}
+
+.animation-container {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.card-deck {
+  position: relative;
+  width: 300px;
+  height: 500px;
+  perspective: 1000px;
+}
+
+.tarot-card {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  left: 0;
+  top: 0;
+}
+
+/* Shuffle cards styling */
+.shuffle-card {
+  transform-style: preserve-3d;
+}
+
+.shuffle-card .card-back {
+  width: 100%;
+  height: 100%;
+  background: transparent;
+  border-radius: 15px;
+  overflow: visible;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.4);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.shuffle-card .card-back img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  object-position: center;
+}
+
+/* Flip card styling */
+.flip-card {
+  transform-style: preserve-3d;
+  perspective: 1000px;
+  display: none;
+}
+
+.flip-card.active {
+  display: block;
+}
+
+.cardFront,
+.cardBack {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  backface-visibility: hidden;
+  border-radius: 15px;
+  overflow: visible;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.4);
+}
+
+.cardFront {
+  background: transparent;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.cardFront img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  object-position: center;
+}
+
+.cardBack {
+  background: transparent;
+  transform: rotateY(-180deg);
+  position: relative;
+}
+
+.card-front-bg {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  object-position: center;
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 1;
+}
+
+.card-text-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 2rem;
+  box-sizing: border-box;
+  text-align: center;
+}
+
+.card-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #4a1a6b;
+  margin-bottom: 1rem;
+  text-shadow: 0 2px 4px rgba(255, 255, 255, 0.8);
+}
+
+.card-name {
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: #2d0a4e;
+  margin-bottom: 1rem;
+  text-shadow: 0 2px 4px rgba(255, 255, 255, 0.8);
+}
+
+.card-description {
+  font-size: 0.85rem;
+  color: #3d1560;
+  line-height: 1.4;
+  max-height: 280px;
+  overflow-y: auto;
+  text-shadow: 0 1px 2px rgba(255, 255, 255, 0.6);
+  padding: 0 0.5rem;
+}
+
+/* Scrollbar styling for card description */
+.card-description::-webkit-scrollbar {
+  width: 6px;
+}
+
+.card-description::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 3px;
+}
+
+.card-description::-webkit-scrollbar-thumb {
+  background: rgba(155, 89, 182, 0.6);
+  border-radius: 3px;
+}
+
+.card-description::-webkit-scrollbar-thumb:hover {
+  background: rgba(155, 89, 182, 0.8);
+}
