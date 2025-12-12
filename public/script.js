@@ -896,19 +896,44 @@ function showCardAnimation(cardName, position) {
   modal.classList.add('show')
   
   return new Promise((resolve) => {
+    // Store resolve function for later use when user closes modal
+    modal.dataset.resolveFunction = 'pending'
+    
     // Create timeline for overhand shuffle animation
     const tl = gsap.timeline({
       onComplete: () => {
-        // After animation completes, wait a moment then hide modal
-        setTimeout(() => {
-          modal.classList.remove('show')
-          // Reset all shuffle cards and flip card
-          shuffleCards.forEach(card => card.style.display = 'block')
-          flipCard.classList.remove('active')
-          resolve()
-        }, 3000) // Show the revealed card for 3 seconds
+        // Animation complete - card is now displayed and waiting for user to close
+        // Show the exit button after flip completes
+        const closeBtn = document.querySelector('#closeAnimationBtn')
+        if (closeBtn) {
+          gsap.to(closeBtn, { opacity: 1, duration: 0.3, delay: 0.5 })
+        }
       }
     })
+    
+    // Setup one-time close handler
+    const closeHandler = () => {
+      const closeBtn = document.querySelector('#closeAnimationBtn')
+      closeBtn.removeEventListener('click', closeHandler)
+      
+      // Hide close button
+      gsap.set(closeBtn, { opacity: 0 })
+      
+      // Hide modal
+      modal.classList.remove('show')
+      
+      // Reset all shuffle cards and flip card
+      shuffleCards.forEach(card => card.style.display = 'block')
+      flipCard.classList.remove('active')
+      
+      resolve()
+    }
+    
+    const closeBtn = document.querySelector('#closeAnimationBtn')
+    if (closeBtn) {
+      gsap.set(closeBtn, { opacity: 0 }) // Hide initially
+      closeBtn.addEventListener('click', closeHandler)
+    }
     
     // Initial card stack position with slight offsets (all visible)
     tl.set(shuffleCards[0], { zIndex: 3, x: 0, y: 0 })
